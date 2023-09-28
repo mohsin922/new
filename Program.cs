@@ -1,75 +1,40 @@
-﻿
-using Ionic.Zip;
+﻿using WinSCP;
 
-using System.IO;
-
- 
-
-string zipFilePath = @"C:\Users\mohsinzahoor.peer\Videos\Test.zip";
-
-string password = "Testing@123";
-
-string responseMessage = ""; // Initialize the response message variable
-
-using (ZipFile zipFile = new ZipFile(zipFilePath))
-
+// Setup session options
+SessionOptions sessionOptions = new SessionOptions
 {
+    Protocol = Protocol.Sftp,
+    HostName = "sftp.provana.com",
+    UserName = "RGS",
+    Password = "Lk31JpQZ",
+    GiveUpSecurityAndAcceptAnySshHostKey = true
+};
 
-    zipFile.Password = password;
+using (Session session = new Session())
+{
+    // Connect to SFTP server
+    session.Open(sessionOptions);
 
+    // Download files
+    TransferOptions transferOptions = new TransferOptions();
+    transferOptions.TransferMode = TransferMode.Binary;
 
-
-    foreach (ZipEntry entry in zipFile)
-
+    RemoteDirectoryInfo directoryInfo = session.ListDirectory("/");
+    foreach (RemoteFileInfo fileInfo in directoryInfo.Files)
     {
-
-        if (entry.UsesEncryption )
-
+        if (!fileInfo.IsDirectory)
         {
-            try
+            TransferOperationResult transferResult;
+            transferResult = session.GetFiles(fileInfo.FullName, "C:\\Users\\mohsinzahoor.peer\\Videos\\SftpTesting\\", false, transferOptions);
 
+            // Throw on any error
+            transferResult.Check();
+
+            // Print results
+            foreach (TransferEventArgs transfer in transferResult.Transfers)
             {
-
-                entry.ExtractWithPassword(@"C:\Users\mohsinzahoor.peer\Videos", password);
-
-                responseMessage += $"Password matched for {entry.FileName}\n";
-
+                Console.WriteLine("Download of {0} succeeded", transfer.FileName);
             }
-
-            catch (Exception ex)
-
-            {
-
-                responseMessage += $"Password didn't match for {entry.FileName}. Extraction failed with error: {ex.Message}\n";
-
-            }
-
-            // Extract the entry with the password
-
-           // entry.ExtractWithPassword(@"C:\Users\mohsinzahoor.peer\Videos", password);
-
         }
-
-        else
-
-        {
-            entry.Extract(@"C:\Users\mohsinzahoor.peer\Videos", ExtractExistingFileAction.OverwriteSilently);
-
-            responseMessage += $"No password required for {entry.FileName}\n";
-
-            // Extract the entry without a password
-
-           // entry.Extract(@"C:\Users\mohsinzahoor.peer\Videos", ExtractExistingFileAction.OverwriteSilently);
-
-        }
-
     }
-    Console.WriteLine(responseMessage);
-
 }
-
-
-
-
-
-

@@ -1,0 +1,161 @@
+if (removedstr != "")
+                                        {
+                                            if (key1.operatorType == "byposition" && key1.operatorCondition == "in the beginning")
+                                            {
+                                                if ((removedstr + "").Length>= (Convert.ToUInt16(key1.operatorValue)))
+                                                {
+                                                    str = str + (removedstr + "").ToString().Substring(Convert.ToUInt16(key1.operatorValue));
+                                                }
+                                                else
+                                                {
+                                                    str = str + removedstr;
+                                                }
+                                                
+                                            }
+                                            else if (key1.operatorType == "byposition" && key1.operatorCondition == "in the end")
+                                            {
+                                                if ((removedstr + "").Length >= (Convert.ToUInt16(key1.operatorValue)))
+                                                {
+                                                    str = str + (removedstr + "").ToString().Substring(0, (removedstr + "").Length - Convert.ToUInt16(key1.operatorValue));
+
+                                                }
+                                                else
+                                                {
+                                                    str = str + removedstr;
+                                                }
+                                            }
+                                            else if (key1.operatorType == "byposition" )
+                                            {
+                                                int startPos = Convert.ToInt32(key1.bypositionforCustom.start) - 1; 
+                                                int endPos = Convert.ToInt32(key1.bypositionforCustom.end); 
+
+                                                if (startPos >= 0 && startPos < endPos && endPos <= removedstr.Length)
+                                                {
+                                                    str = str + removedstr.Substring(startPos, endPos - startPos);
+                                                }
+                                                else
+                                                {
+                                                    str = str + removedstr;
+                                                }
+                                            }
+
+                                            else if (key1.operatorType == "byvalue" && key1.operatorCondition == "in the beginning")
+                                            {
+                                                str = str + (removedstr + "").Replace(key1.operatorValue, "");
+                                            }
+                                            else if (key1.operatorType == "byvalue" && key1.operatorCondition == "in the end")
+                                            {
+                                                var replaceIndex = (removedstr + "").LastIndexOf(key1.operatorValue);
+                                                if (replaceIndex != -1)
+                                                {
+                                                    //splitTxt = (headerValue + '').replaceAt(replaceIndex, '');
+                                                    str = str + (removedstr + "").Substring(0, replaceIndex)
+                                                        + (removedstr + "").Substring(replaceIndex + (key1.operatorValue).Length);
+                                                }
+                                                else
+                                                {
+                                                    str = str + (removedstr + "");
+                                                }
+                                            }
+                                            else if (key1.operatorType == "bydelimiter" && key1.operatorCondition!="Custom")
+                                            {
+                                                if ((removedstr + "").Contains(key1.selectedOperator))
+                                                {
+                                                    string[] arrayOfData = (removedstr + "").Split(key1.selectedOperator);
+                                                    str = str + arrayOfData[Convert.ToInt16(key1.operatorValue) - 1];
+                                                }
+                                            }
+                                            else if (key1.operatorType == "bydelimiter" && key1.operatorCondition=="Custom")
+                                            {
+                                                if (key1.bydelimiterforCustom != null && key1.bydelimiterforCustom.Count > 0)
+                                                {
+                                                    foreach (var delimiterCustom in key1.bydelimiterforCustom)
+                                                    {
+                                                        string delimiter = delimiterCustom.selectedOperator; // Get the delimiter from bydelimiterforCustom
+
+                                                        string intermediateResult = removedstr; // Store intermediate result for each delimiter
+
+                                                        if (delimiterCustom.Position == "Starting")
+                                                        {
+                                                            int operatorValue = Convert.ToInt32(delimiterCustom.operatorValue);
+
+                                                            if (operatorValue > 0 && operatorValue <= intermediateResult.Length)
+                                                            {
+                                                                int startIndex = -1;
+
+                                                                for (int i = 1; i <= operatorValue; i++)
+                                                                {
+                                                                    // Find the index of the next occurrence of the delimiter
+                                                                    int nextDelimiterIndex = intermediateResult.IndexOf(delimiter, startIndex + 1);
+
+                                                                    if (nextDelimiterIndex >= 0)
+                                                                    {
+                                                                        startIndex = nextDelimiterIndex;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        break; // If there are fewer delimiters than operatorValue, exit the loop
+                                                                    }
+                                                                }
+
+                                                                if (startIndex >= 0 && startIndex < intermediateResult.Length)
+                                                                {
+                                                                    // Remove characters up to the specified occurrence of the delimiter
+                                                                    intermediateResult = intermediateResult.Substring(startIndex + delimiter.Length);
+                                                                }
+                                                                else
+                                                                {
+                                                                    // Handle the case where startIndex is out of range (string is too short)
+                                                                    intermediateResult = ""; // Set intermediateResult to an empty string
+                                                                }
+                                                            }
+                                                        }
+
+
+                                                        if (delimiterCustom.Position == "Ending")
+                                                        {
+                                                            int operatorValue = Convert.ToInt32(delimiterCustom.operatorValue);
+
+                                                            if (operatorValue > 0 && operatorValue <= intermediateResult.Length)
+                                                            {
+                                                                int endIndex = intermediateResult.Length;
+
+                                                                for (int i = 0; i < operatorValue; i++)
+                                                                {
+                                                                    // Find the index of the last occurrence of the delimiter within the remaining substring
+                                                                    int lastDelimiterIndex = intermediateResult.LastIndexOf(delimiter, endIndex - 1);
+
+                                                                    if (lastDelimiterIndex >= 0)
+                                                                    {
+                                                                        endIndex = lastDelimiterIndex;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        break; // If there are fewer delimiters than operatorValue, exit the loop
+                                                                    }
+                                                                }
+
+                                                                if (endIndex >= 0 && endIndex < intermediateResult.Length)
+                                                                {
+                                                                    // Remove characters after the specified occurrence of the delimiter
+                                                                    intermediateResult = intermediateResult.Substring(0, endIndex);
+                                                                }
+                                                                else
+                                                                {
+                                                                    // Handle the case where endIndex is out of range (string is too short)
+                                                                    intermediateResult = ""; // Set intermediateResult to an empty string
+                                                                }
+                                                            }
+                                                        }
+
+
+
+
+                                                        // Update the result with the intermediate result for this delimiter
+                                                        removedstr = intermediateResult;
+                                                    }
+
+                                                     str = str + removedstr; 
+                                                }
+                                            }
+                                        }
